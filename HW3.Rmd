@@ -1,24 +1,517 @@
 ---
-title: "HW3"
-author: "Vicki Hertzberg"
-date: "February 8, 2017"
-output: html_document
+title: 'Monster Lab Data Presentation: Wine Preferences'
+author: "Julianne Ammirati"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output:
+  pdf_document: default
+  html_document: default
+  github_document: default
+  word_document: default
+header-includes:
+- \usepackage{setspace}
+- \doublespacing
 ---
 
+The code used to generate this presentation is available here: [https://github.com/JulianneA/Regression-1.git](https://github.com/JulianneA/Regression-1.git).
+
+```{r setup, include=FALSE}
+# loading tidyverse and haven libraries... not sure if this is needed.... 
+library(tidyverse)
+library(haven)
+library(ggplot2)
+library(car)
+library(stargazer)
+```
+```{r, include=FALSE}
+# read in the comma delimited (CSV) formatted dataset
+WINE <- read_csv("White_wines.csv", col_names=TRUE)
+```
+```{r, include=FALSE}
+#Variables (columns) in WINE dataset
+names(WINE)
+```
+### Portugese White Wine Dataset Summary
+```{r, include=FALSE}
+(summary(WINE))
+Qual <-c(round(mean(WINE$quality), digits=2),
+round(sd(WINE$quality), digits=2),
+median(WINE$quality),
+min(WINE$quality),
+max(WINE$quality))
+
+NumValues <-c(length(WINE$quality), length(WINE$`fixed acidity`), length(WINE$`volatile acidity`), length(WINE$`citric acid`), length(WINE$`residual sugar`), length(WINE$chlorides),length(WINE$`free sulfur dioxide`), length(WINE$`total sulfur dioxide`), length(WINE$density), length(WINE$pH), length(WINE$sulphates), length(WINE$alcohol), length(WINE$group))
+
+FIXACID <- c(round(mean(WINE$`fixed acidity`), digits=2), round(sd(WINE$`fixed acidity`), digits=2), median(WINE$`fixed acidity`),
+min(WINE$`fixed acidity`), max(WINE$`fixed acidity`))
+
+VOLACID <- c(round(mean(WINE$`volatile acidity`), digits=2),
+  round(sd(WINE$`volatile acidity`), digits=2),
+  median(WINE$`volatile acidity`),
+  min(WINE$`volatile acidity`),
+  max(WINE$`volatile acidity`))
+
+CITACID <- c(round(mean(WINE$`citric acid`), digits=2),
+  round(sd(WINE$`citric acid`), digits=2),
+  median(WINE$`citric acid`),
+  min(WINE$`citric acid`),
+  max(WINE$`citric acid`))
+```
+```{r, include=FALSE}
+RESACID <- c(round(mean(WINE$`residual sugar`), digits=2),
+    round(sd(WINE$`residual sugar`), digits=2),
+    median(WINE$`residual sugar`),
+    min(WINE$`residual sugar`),
+    max(WINE$`residual sugar`))
+
+CHLOR <- c(round(mean(WINE$chlorides), digits=2),
+    round(sd(WINE$chlorides), digits=2),
+    median(WINE$chlorides),
+    min(WINE$chlorides),
+    max(WINE$chlorides))
+
+FSD <- c(round(mean(WINE$`free sulfur dioxide`), digits=2),
+    round(sd(WINE$`free sulfur dioxide`), digits=2),
+    median(WINE$`free sulfur dioxide`),
+    min(WINE$`free sulfur dioxide`),
+    max(WINE$`free sulfur dioxide`))
+
+TSD <- c(round(mean(WINE$`total sulfur dioxide`), digits=2),
+    round(sd(WINE$`total sulfur dioxide`), digits=2),
+    median(WINE$`total sulfur dioxide`),
+    min(WINE$`total sulfur dioxide`),
+    max(WINE$`total sulfur dioxide`))
+
+DEN <- c(round(mean(WINE$density), digits=3),
+    round(sd(WINE$density), digits=3),
+    round(median(WINE$density), digits=3),
+    round(min(WINE$density), digits=3),
+    round(max(WINE$density), digits=3))
+
+PH <- c(round(mean(WINE$pH), digits=2),
+    round(sd(WINE$pH), digits=2),
+    median(WINE$pH),
+    min(WINE$pH),
+    max(WINE$pH))
+
+SULPH <- c(round(mean(WINE$sulphates), digits=2),
+    round(sd(WINE$sulphates), digits=2),
+    median(WINE$sulphates),
+    min(WINE$sulphates),
+    max(WINE$sulphates))
+
+ETOH <- c(round(mean(WINE$alcohol), digits=2),
+    round(sd(WINE$alcohol), digits=2),
+    median(WINE$alcohol),
+    min(WINE$alcohol),
+    max(WINE$alcohol))
+
+#GRP <- c(round(mean(WINE$group), digits=2),
+#    sd(WINE$group),
+#    median(WINE$group),
+#    min(WINE$group),
+#    max(WINE$group))
+#Does not seem to recognize column name "group"
+```
+This dataset contains preference information on `r length(WINE$quality)` different Portugese white varietals covering the following variables: `r names(WINE)`. Overall, preference scores (coded as the _quality_ variable) range from a low score of `r min(WINE$quality)` to a high score of `r max(WINE$quality)` with a mean score of `r round(mean(WINE$quality), digits=2)` and a median score of `r median(WINE$quality)` (SD=`r round(sd(WINE$quality), digits=2)`). The dataset does not contain any missing values. 
+
+**Summary Statistics for all variables are below:**
+
+| | N | Min | Max | Mean | Std Dev | Median |
+|-----|------- | ----------|----------| -----------|-----------| ---------|
+|Quality |`r NumValues[1]` | `r Qual[4]`|`r Qual[5]`| `r Qual[1]`|`r Qual[2]`|`r Qual[3]`|
+| Fixed Acidity |`r NumValues[2]` | `r FIXACID[4]`|`r FIXACID[5]`| `r FIXACID[1]`|`r FIXACID[2]`|`r FIXACID[3]`|
+| Volatile Acidity|`r NumValues[3]` | `r VOLACID[4]`|`r VOLACID[5]`| `r VOLACID[1]`|`r VOLACID[2]`|`r VOLACID[3]`|
+| Citric Acid |`r NumValues[4]` | `r CITACID[4]`|`r CITACID[5]`| `r CITACID[1]`|`r CITACID[2]`|`r CITACID[3]`|
+| Residual Sugar |`r NumValues[5]` | `r RESACID[4]`|`r RESACID[5]`| `r RESACID[1]`|`r RESACID[2]`|`r RESACID[3]`|
+| Chlorides |`r NumValues[6]` | `r CHLOR[4]`|`r CHLOR[5]`| `r CHLOR[1]`|`r CHLOR[2]`|`r CHLOR[3]`|
+|Free Sulfur Dioxide|`r NumValues[7]` | `r FSD[4]`|`r FSD[5]`| `r FSD[1]`|`r FSD[2]`|`r FSD[3]`|
+|Total Sulfur Dioxide|`r NumValues[8]` | `r TSD[4]`|`r TSD[5]`| `r TSD[1]`|`r TSD[2]`|`r TSD[3]`|
+| Density |`r NumValues[9]` | `r DEN[4]`|`r DEN[5]`| `r DEN[1]`|`r DEN[2]`|`r DEN[3]`|
+| pH |`r NumValues[10]` | `r PH[4]`|`r PH[5]`| `r PH[1]`|`r PH[2]`|`r PH[3]`|
+| Sulphates |`r NumValues[11]` | `r SULPH[4]`|`r SULPH[5]`| `r SULPH[1]`|`r SULPH[2]`|`r SULPH[3]`|
+| Alcohol |`r NumValues[12]` | `r ETOH[4]`|`r ETOH[5]`| `r ETOH[1]`|`r ETOH[2]`|`r ETOH[3]`|
+
+### Evaluating the Mean Values for Wine Characteristics Based on Quality Rating
+Our variable of interest is the wine's quality, and how this variable is impacted by the other characteristics, such as alcohol ocntent or pH. Below is a table of the mean value of each variable when the wines are grouped by quality rating. Each value is rounded to the nearest hundredth, except density measures.
+```{r, include=FALSE}
+FixedAcidBin <-aggregate(`fixed acidity` ~ quality, WINE, mean)
+FixedVolatileBin <-aggregate(`volatile acidity` ~ quality, WINE, mean)
+CitricBin <-aggregate(`citric acid` ~ quality, WINE, mean)
+SugarBin <-aggregate(`residual sugar` ~ quality, WINE, mean)
+ChlorBin <-aggregate(chlorides ~ quality, WINE, mean)
+FreeSulf <-aggregate(`free sulfur dioxide` ~ quality, WINE, mean)
+TotalSulf <-aggregate(`total sulfur dioxide` ~ quality, WINE, mean)
+DensAgg <-aggregate(density ~ quality, WINE, mean)
+PHAgg <-aggregate(pH ~ quality, WINE, mean)
+SulpAgg <-aggregate(sulphates ~ quality, WINE, mean)
+AlcAgg <-aggregate(alcohol ~ quality, WINE, mean)
+
+#DATA <-aggregate(c(WINE$`fixed acidity`, WINE$`volatile acidity`, WINE$`citric acid`,WINE$`residual sugar`, WINE$chlorides, WINE$`free sulfur dioxide`), by=quality, FUN=mean, na.rm=TRUE) #by.y = quality, WINE, mean)
+
+#Hoops to merge into 1 data frame
+MERGE1 <-merge(FixedAcidBin, FixedVolatileBin, by.x = "quality")
+MERGE2 <-merge(MERGE1, CitricBin, by.x = "quality")
+MERGE3 <-merge(MERGE2, SugarBin, by.x = "quality")
+MERGE4 <-merge(MERGE3, ChlorBin, by.x = "quality")
+MERGE5 <-merge(MERGE4, FreeSulf, by.x = "quality")
+MERGE6 <-merge(MERGE5, TotalSulf, by.x = "quality")
+MERGE7 <-merge(MERGE6, AlcAgg, by.x = "quality")
+MERGE8 <-merge(MERGE7, PHAgg, by.x = "quality")
+MERGE9 <-merge(MERGE8, SulpAgg, by.x = "quality")
+MeanWine1 <-merge(MERGE9, DensAgg, by.x = "quality")
 
 
-You are now the data slave to the principal investigator Dr. Vinca Monster. Dr. M is in the Grape Program at State U, and you are just a poor graduate student trying to get your degree. Dr. M is interested in wine preferences and the influences of physico-chemical properties on preferences. Her laboratory has gathered an extensive dataset on Portugese white varietals.
+##CREATE AND MERGE rounded datasets
+MERGE10 <-round(MERGE9, 2)
+MERGE11 <-round(DensAgg, 4)
+MeanWine <-merge(MERGE10, MERGE11, by.x = "quality")
+```
+``` {r, include=FALSE}
+###This is a much easier way to do this, but I don't know how to call on these values for the table below, and the KNITR table is ugly.
+FINAL <-WINE %>%
+    group_by(quality) %>%
+   summarise(MeanFixedAcidity = mean(`fixed acidity`),
+              MeanVolatileAcidity = mean(`volatile acidity`),
+              MeanCitricAcid = mean(`citric acid`),
+              MeanResidualSugar = mean(`residual sugar`),
+              MeanChlorides = mean(`chlorides`),
+              MeanFreeSulfurDioxide = mean(`free sulfur dioxide`)) %>%
+    knitr::kable(col.names=c("Quality", "Mean Fixed Acidity", "Mean Volatile Acidity", 
+                    "Mean Citric Acid","Mean Residual Sugar", "Mean Chlorides", 
+                    "Mean Free Sulfur Dioxide"),
+                digits = 2,
+                 caption="Mean Values for Wine Characteristics By Quality Rating")
+```
+```{r, include=FALSE}
+#knitr::kable(MERGE) ## It looks better when typed out in RMD
+```
+|Quality | `r MeanWine[1,1]`| `r MeanWine[2,1]` |`r MeanWine[3,1]`| `r MeanWine[4,1]`|`r MeanWine[5,1]`|`r MeanWine[6,1]`|`r MeanWine[7,1]`|
+|-----|------- | ----------|----------| -----------|-----------| ---------|
+| Fixed Acidity | `r MeanWine[1,2]`| `r MeanWine[2,2]` |`r MeanWine[3,2]`| `r MeanWine[4,2]`|`r MeanWine[5,2]`|`r MeanWine[6,2]`|`r MeanWine[7,2]`|
+| Volatile Acidity| `r MeanWine[1,3]`| `r MeanWine[2,3]` |`r MeanWine[3,3]`| `r MeanWine[4,3]`|`r MeanWine[5,3]`|`r MeanWine[6,3]`|`r MeanWine[7,3]`|
+| Citric Acid | `r MeanWine[1,4]`| `r MeanWine[2,4]` |`r MeanWine[3,4]`| `r MeanWine[4,4]`|`r MeanWine[5,4]`|`r MeanWine[6,4]`|`r MeanWine[7,4]`|
+| Residual Sugar | `r MeanWine[1,5]`| `r MeanWine[2,5]` |`r MeanWine[3,5]`| `r MeanWine[4,5]`|`r MeanWine[5,5]`|`r MeanWine[6,5]`|`r MeanWine[7,5]`|
+| Chlorides | `r MeanWine[1,6]`| `r MeanWine[2,6]` |`r MeanWine[3,6]`| `r MeanWine[4,6]`|`r MeanWine[5,6]`|`r MeanWine[6,6]`|`r MeanWine[7,6]`|
+|Free Sulfur Dioxide| `r MeanWine[1,7]`| `r MeanWine[2,7]` |`r MeanWine[3,7]`| `r MeanWine[4,7]`|`r MeanWine[5,7]`|`r MeanWine[6,7]`|`r MeanWine[7,7]`|
+|Total Sulfur Dioxide| `r MeanWine[1,8]`| `r MeanWine[2,8]` |`r MeanWine[3,8]`| `r MeanWine[4,8]`|`r MeanWine[5,8]`|`r MeanWine[6,8]`|`r MeanWine[7,8]`|
+| Density | `r MeanWine[1,9]`| `r MeanWine[2,9]` |`r MeanWine[3,9]`| `r MeanWine[4,9]`|`r MeanWine[5,9]`|`r MeanWine[6,9]`|`r MeanWine[7,9]`|
+| pH | `r MeanWine[1,10]`| `r MeanWine[2,10]` |`r MeanWine[3,10]`| `r MeanWine[4,10]`|`r MeanWine[5,10]`|`r MeanWine[6,10]`|`r MeanWine[7,10]`|
+| Sulphates | `r MeanWine[1,11]`| `r MeanWine[2,11]` |`r MeanWine[3,11]`| `r MeanWine[4,11]`|`r MeanWine[5,11]`|`r MeanWine[6,11]`|`r MeanWine[7,11]`|
+| Alcohol | `r MeanWine[1,12]`| `r MeanWine[2,12]` |`r MeanWine[3,12]`| `r MeanWine[4,12]`|`r MeanWine[5,12]`|`r MeanWine[6,12]`|`r MeanWine[7,12]`|
 
+### Means of All Independent Variables by Quality Value
+These graphs are histograms of all data points for the given characteristic. The hot-pink overlay tracks the mean value at each quality level for that characteristic, which is purely exploratory and not meant to display significant patterns in the data.
+```{r, include=FALSE}
+#rename column headers to indicate that these are means
+names(MeanWine1) <- c("Quality", "Mean Fixed Acidity", "Mean Volatile Acidity", 
+                  "Mean Citric Acid","Mean Residual Sugar", "Mean Chlorides", 
+                  "Mean Free Sulfur Dioxide", "Mean Total Sulfur Dioxide", "Mean Alcohol", 
+                  "Mean pH", "Mean Sulphates", "Mean Density")
+```
+```{r, echo=FALSE}
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean Fixed Acidity`))+
+    geom_line(stat="identity", color='hotpink', size=2)+
+    #geom_boxplot(data=WINE,aes(x=quality, y=`fixed acidity`)) +
+    geom_jitter(data=WINE, aes(x=quality, y=`fixed acidity`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
 
-You will find the white_wines.csv file and its description in my github repo (https://github.com/vhertzb/Regression-1)[https://github.com/vhertzb/Regression-1].
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean Volatile Acidity`)) +
+    geom_line(stat="identity", color='hotpink', size=2)+
+  geom_jitter(data=WINE, aes(x=quality, y=`volatile acidity`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
 
-Please use the techniques you have learned in the last two classes, specifically exploratory data analysis and linear regression, to determine association of the wine properties on preference. 
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean Citric Acid`)) +
+    geom_line(stat="identity", color='hotpink', size=2)+
+  geom_jitter(data=WINE, aes(x=quality, y=`citric acid`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
 
-Prepare a report for presentation at the next Monster lab meeting about this dataset.
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean Residual Sugar`)) +
+    geom_line(stat="identity", color='hotpink', size=2)+
+geom_jitter(data=WINE, aes(x=quality, y=`residual sugar`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
 
-Rubric:
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean Chlorides`)) +
+    geom_line(stat="identity", color='hotpink', size=2)+
+geom_jitter(data=WINE, aes(x=quality, y=`chlorides`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
 
-Exploration (summary statistics (the m's), univariate graphs, multivariate graphs)
-Regression (Models explored, diagnostics completed, final model choice, justification)
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean Free Sulfur Dioxide`)) +
+    geom_line(stat="identity", color='hotpink', size=2)+
+geom_jitter(data=WINE, aes(x=quality, y=`free sulfur dioxide`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
 
-Please include a concluding paragraph (or two) about the implications of your findings.
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean Total Sulfur Dioxide`)) +
+    geom_line(stat="identity", color='hotpink', size=2)+
+geom_jitter(data=WINE, aes(x=quality, y=`total sulfur dioxide`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
+
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean Density`)) +
+    geom_line(stat="identity", color='hotpink', size=2)+
+geom_jitter(data=WINE, aes(x=quality, y=`density`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
+
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean pH`)) +
+    geom_line(stat="identity", color='hotpink', size=2)+
+geom_jitter(data=WINE, aes(x=quality, y=`pH`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
+
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean Sulphates`)) +
+    geom_line(stat="identity", color='hotpink', size=2)+
+geom_jitter(data=WINE, aes(x=quality, y=`sulphates`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
+
+ggplot(data=MeanWine1, aes(x=Quality, y=`Mean Alcohol`)) +
+    geom_line(stat="identity", color='hotpink', size=2)+
+geom_jitter(data=WINE, aes(x=quality, y=`alcohol`), position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
+```
+
+```{r, include=FALSE}
+#Opted for line graphs (above) because these are difficult to discern because of # of data points...
+WINE %>%
+  ggplot(aes(x=`fixed acidity`, y=quality)) +
+    geom_point()
+WINE %>%
+  ggplot(aes(x=`volatile acidity`, y=quality)) +
+    geom_point()
+WINE %>%
+  ggplot(aes(x=`citric acid`, y=quality)) +
+    geom_point()
+WINE %>%
+  ggplot(aes(x=`residual sugar`, y=quality)) +
+    geom_point()
+WINE %>%
+  ggplot(aes(x=chlorides, y=quality)) +
+    geom_point()
+WINE %>%
+  ggplot(aes(x=`free sulfur dioxide`, y=quality)) +
+    geom_point()
+```
+```{r, include=FALSE}
+#this is spliting the data into test and train groups.
+set.seed(20170212) #This can be anything
+WINE$group <- runif(length(WINE$quality), min = 0, max = 1)
+summary(WINE)
+Wine.train <- subset(WINE, group <= 0.90) #Subset(Dataset, variable less than or equal to .90)
+#This splits the data 90/10 and we can do it because there is such a large dataset
+Wine.test <- subset(WINE, group > 0.90)
+```
+```{r, include=FALSE}
+plot(quality ~ `fixed acidity`, data = Wine.test) #y ~ x (outcome(y) depends on predictors(x))
+plot(quality ~ `volatile acidity`, data = Wine.test)  
+plot(quality ~ `citric acid`, data = Wine.test) 
+plot(quality ~ `residual sugar`, data = Wine.test)  
+plot(quality ~ chlorides, data = Wine.test) 
+plot(quality ~ `free sulfur dioxide`, data = Wine.test) 
+plot(quality ~ `total sulfur dioxide`, data = Wine.test) 
+plot(quality ~ density, data = Wine.test) 
+plot(quality ~ pH, data = Wine.test) 
+plot(quality ~ sulphates, data = Wine.test) 
+plot(quality ~ alcohol, data = Wine.test) 
+
+``` 
+
+#Univariate Modeling
+Based on the histographs and line graphs above, alcohol content appears to be the strongest candidate for a significant linear relationship with the quality measure.
+
+Exploratory simple linear modeling was conducted to complete a preliminary examination of the independent variable by quality relationship.
+```{r, include=FALSE}
+# linear regression of effect on fixed acidity on quality
+regfixacid <- lm(quality ~ `fixed acidity`, data = Wine.train) #lm is linear model function
+#This will give us the linear model, but by assigning it to reg1, we can save results in an object
+summary(regfixacid)
+#repeating with other variables
+regvolacid <- lm(quality ~ `volatile acidity`, data = Wine.train)
+regcitacid <- lm(quality ~ `citric acid`, data = Wine.train)
+regressugar <- lm(quality ~ `residual sugar`, data = Wine.train)
+regchlor <- lm(quality ~ chlorides, data = Wine.train)
+regfsd <- lm(quality ~ `free sulfur dioxide`, data = Wine.train)
+regtsd <- lm(quality ~ `total sulfur dioxide`, data = Wine.train)
+regden <- lm(quality ~ density, data = Wine.train)
+regpH <- lm(quality ~ pH, data = Wine.train)
+regsulph <- lm(quality ~ sulphates, data = Wine.train)
+regetoh <- lm(quality ~ alcohol, data = Wine.train)
+
+summary(regvolacid) #SIGNIFICANT
+summary(regcitacid)
+summary(regressugar)#SIGNIFICANT
+summary(regchlor)#SIGNIFICANT
+summary(regfsd)
+summary(regtsd)#SIGNIFICANT
+summary(regden)#SIGNIFICANT
+summary(regpH)
+summary(regsulph)
+summary(regetoh)#SIGNIFICANT
+```
+
+From this univariate analysis, six variables were found to have a significant linear relationship (p<0.001) with wine quality. Volatile acidity, residual sugar, chlorides, total sulfur dioxide, density, and alcohol content.
+
+* For each increase of 1 unit in **Fixed Acidity**, the quality score of the wine decreases by 0.12
+
+* For each increase of 1 unit in **Volatile Acidity**, the quality score of the wine decreases by 1.75
+
+* For each increase of 10 units in **Residual Sugar**, the quality score of the wine decreases by 0.16
+
+* For each increase of 1/10 unit in **Chlorides**, the quality score of the wine decreases by 8.31
+
+* For each increase of 100 unit in **Total sulfur dioxide**, the quality score of the wine decreases by 0.40
+
+* For each increase of 1/100 unit in **Density**, the quality score of the wine decreases by 0.90
+
+* For each increase of 1 unit in **pH**, the quality score of the wine increases by 0.59
+
+* For each increase of 1 unit in **Sulphates**, the quality score of the wine increases by 0.40
+
+* For each increase of 1 unit in **Alcohol content**, the quality score of the wine increases by 0.31
+
+```{r, include=FALSE}
+Wine.train$pred.qual <- predict(regetoh, newdata = Wine.train) #predict function will use the linear model object
+Wine.test$pred.qual <- predict(regetoh, newdata=Wine.test)
+
+# calculate residuals in the training and testing dataset
+Wine.train$resid <- Wine.train$quality - Wine.train$pred.qual
+Wine.test$resid <- Wine.test$quality - Wine.test$pred.qual
+```
+
+```{r, include=FALSE, eval=FALSE}
+library(car)
+#get the residual plots
+residualPlots(regetoh)
+#gives you p-values that aren't statistically significant
+```
+
+```{r, include=FALSE}
+#plot test dataset
+plot(quality ~ alcohol, data = Wine.test) 
+```
+```{r, include=FALSE}
+#OR CAN JUST RUN IT LIKE THIS
+plot(quality~alcohol, data = Wine.test)
+abline (0,0)
+```
+
+#Multivariate Modeling
+```{r, include=FALSE}
+##I HAVE NO IDEA WHAT I AM DOING HERE.....
+#produce a scatterplot matrix 
+scatterplotMatrix(~ quality + alcohol + density + chlorides, span =0.7, data = WINE)
+```
+```{r, include=FALSE}
+##AGAIN, I HAVE NO IDEA WHAT I AM DOING HERE. I am unsure what transformations are worthwhile on this data.
+#produce a scatterplot matrix 
+scatterplotMatrix(~ quality + alcohol + log2(density) + log2(chlorides), span =0.7, data = WINE)
+```
+```{r, include=FALSE}
+# let the multivariate regressions begin!
+##Running with everything... mostly just want to check alcohol...
+wine.bigmod <- lm(quality ~ `fixed acidity`+`volatile acidity`+ `citric acid`+`residual sugar`+ chlorides+ `free sulfur dioxide`+`total sulfur dioxide`+ density+ pH+ sulphates+ alcohol, data= Wine.train)
+
+#and see what we have
+summary(wine.bigmod)
+###Literally, EVERYTHING WAS SIGNIFICANT. Ignore this adventure and try again.
+#Fstatistic gives overall F for H0=B1=B2=0
+
+wine.LessBigMod <- lm(quality ~ `fixed acidity`+`volatile acidity`+`residual sugar`+ `free sulfur dioxide`+ density+ pH+ sulphates+ alcohol, data= Wine.train)
+
+#and see what we have
+summary(wine.LessBigMod)
+#Fstatistic gives overall F for H0=B1=B2=0
+
+```
+```{r, include=FALSE}
+wine.ILikeThisMod <- lm(quality ~ alcohol+density, data= Wine.train)
+
+#and see what we have
+summary(wine.ILikeThisMod)
+##Did not like as much as I had hoped
+```
+It is clear that alcohol content has some significant relationship to the quality of the wine. MLR models were generated to evauate which characteristicis improved the variation in quality accounted for by the model (optimized for adjusted R-squared value). Models were iterated on to continue to improve R-squared, with additional variables being gradually added to the strongest initial model: quality ~ alcohol.
+
+* At most, these models were only able to account for approximately 26% of the variation in quality among the various wines. 
+```{r, include=FALSE}
+#I do not know enough about statistics to actually know what I am doing. I am sure there is an easier way, but I completed an exhaustive model comparison, and the best I could get was an adjusted R-value of 26%
+#wine.mod2 <- lm(quality ~ alcohol+ fixed.acidity + volatile.acidity , data=WINE)
+#wine.mod3 <- lm(quality ~ alcohol+free.sulfur.dioxide+total.sulfur.dioxide, data= WINE)
+#wine.mod4 <- lm(quality ~ alcohol+density+ pH, data= WINE)
+wine.mod5 <- lm(quality ~ alcohol+`fixed acidity`, data= WINE)
+wine.mod6 <- lm(quality ~ alcohol+`volatile acidity`, data= WINE)
+wine.mod7 <- lm(quality ~ alcohol+`residual sugar`, data= WINE)
+wine.mod8 <- lm(quality ~ alcohol+`free sulfur dioxide`, data= WINE)
+wine.mod9 <- lm(quality ~ alcohol+`total sulfur dioxide`, data= WINE)
+#wine.mod5 <- lm(quality ~ alcohol+ fixed.acidity , data= WINE)
+#wine.mod6 <- lm(quality ~ alcohol+ volatile.acidity , data= WINE)
+#wine.mod7 <- lm(quality ~ alcohol+ residual.sugar , data= WINE)
+#wine.mod8 <- lm(quality ~ alcohol+free.sulfur.dioxide, data= WINE)
+#wine.mod9 <- lm(quality ~ alcohol+total.sulfur.dioxide, data= WINE)
+wine.mod10 <- lm(quality ~ alcohol+density, data= WINE)
+wine.mod11 <- lm(quality ~ alcohol+pH, data= WINE)
+wine.mod12 <- lm(quality ~ alcohol+sulphates, data= WINE)
+
+summary(wine.mod10) #Adjusted R-squared is 0.1921
+```
+```{r, include=FALSE}
+wine.mod13 <- lm(quality ~ alcohol+density+`fixed acidity`, data= WINE) #0.1982
+wine.mod14 <- lm(quality ~ alcohol+density+`volatile acidity`, data= WINE) #0.2464
+wine.mod15 <- lm(quality ~ alcohol+density+`residual sugar`, data= WINE) #0.2097
+wine.mod16 <- lm(quality ~ alcohol+density+`free sulfur dioxide`, data= WINE) #0.2049
+wine.mod17 <- lm(quality ~ alcohol+density+`total sulfur dioxide`, data= WINE) #0.192
+#wine.mod13 <- lm(quality ~ alcohol+density+fixed.acidity, data= WINE) #0.1982
+#wine.mod14 <- lm(quality ~ alcohol+density+volatile.acidity, data= WINE) #0.2464
+#wine.mod15 <- lm(quality ~ alcohol+density+residual.sugar, data= WINE) #0.2097
+#wine.mod16 <- lm(quality ~ alcohol+density+free.sulfur.dioxide, data= WINE) #0.2049
+#wine.mod17 <- lm(quality ~ alcohol+density+total.sulfur.dioxide, data= WINE) #0.192
+wine.mod18 <- lm(quality ~ alcohol+density+pH, data= WINE) #0.1942
+wine.mod19 <- lm(quality ~ alcohol+density+sulphates, data= WINE) #0.1951
+summary(wine.mod13)
+summary(wine.mod14)
+summary(wine.mod15)
+summary(wine.mod16)
+summary(wine.mod17)
+summary(wine.mod18)
+summary(wine.mod19)
+#Volatile Acidity improved Rsquared the most. Total sulfur dioxide led to no improvement.
+#Looking for a model that improves beyond wine.mod14: 0.2464
+wine.mod20 <- lm(quality ~ alcohol+density+`volatile acidity`+`fixed acidity`, data= WINE) #0.2546
+wine.mod21 <- lm(quality ~ alcohol+density+`volatile acidity`+`residual sugar`, data= WINE) #0.2633
+wine.mod22 <- lm(quality ~ alcohol+density+`volatile acidity`+`free sulfur dioxide`, data= WINE) #0.2543
+wine.mod23 <- lm(quality ~ alcohol+density+`volatile acidity`+pH, data= WINE) #0.2477
+wine.mod24 <- lm(quality ~ alcohol+density+`volatile acidity`+sulphates, data= WINE) #0.2484
+#wine.mod20 <- lm(quality ~ alcohol+density+volatile.acidity+fixed.acidity, data= WINE) #0.2546
+#wine.mod21 <- lm(quality ~ alcohol+density+volatile.acidity+residual.sugar, data= WINE) #0.2633
+#wine.mod22 <- lm(quality ~ alcohol+density+volatile.acidity+free.sulfur.dioxide, data= WINE) #0.2543
+#wine.mod23 <- lm(quality ~ alcohol+density+volatile.acidity+pH, data= WINE) #0.2477
+#wine.mod24 <- lm(quality ~ alcohol+density+volatile.acidity+sulphates, data= WINE) #0.2484
+summary(wine.mod20)
+summary(wine.mod21)
+summary(wine.mod22)
+summary(wine.mod23)
+summary(wine.mod24)
+
+#All were improvements, but only slightly
+wine.mod25 <- lm(quality ~ alcohol+density+`volatile acidity`+`residual sugar`+`fixed acidity`, data= WINE) #0.2633
+#wine.mod25 <- lm(quality ~ alcohol+density+volatile.acidity +residual.sugar+ fixed.acidity, data= WINE) #0.2633
+summary(wine.mod25)
+```
+```{r, include=FALSE}
+library(stargazer)
+stargazer(wine.mod21,wine.mod14,title="Comparison of 2 Regression outputs",type="pdf",align=TRUE)
+```
+The final model included alcohol, density, volatile acidity, and residual sugar. This model had an adjusted R-square of 26.78%.
+
+* For each increase of 1 unit in **alcohol content**, the quality score of the wine increases by 0.29, as long as density, volatile acidity and residual sugar were kept constant (p<0.001)
+
+* For each increase of 1/100 unit in **density**, the quality score of the wine decreases by 0.70, as long as alcohol content, volatile acidity and residual sugar were kept constant (p<0.001)
+
+* For each increase of 1 unit in **volatile acidity**, the quality score of the wine decreases by 2.08, as long as alcohol content, density and residual sugar were kept constant (p<0.001)
+
+* For each increase of 10 units in **residual sugar**, the quality score of the wine increases by 0.53, as long as alcohol content, density and volatile acidity were kept constant (p<0.001)
+
+```{r}
+#Used model 21 from above!
+wine.finmodel <- lm(quality ~ alcohol+density+`volatile acidity`+`residual sugar`, data= Wine.train)
+#wine.finmodel <- lm(quality ~ alcohol+density+volatile.acidity +residual.sugar, data= Wine.train)
+summary(wine.finmodel)
+```
+
+#Conclusion
+Based on the final multivariare regression model using these variables, it is clear that we must reject the null hypothesis. The most comprehensive model that was pulled from this data included four variables in the regression equation: residual sugar, volatile acidity, alcohol content, and density. These four variables interact to predict quality via the following equation:
+\begin{equation}
+  y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3
+\end{equation}
+
+\begin{equation}
+  quality = \beta_0 + [.29*(alcohol)] + [-70.33*(density)] + [-2.08*(volatile acidity)] + [0.05*(residual_sugar)]
+\end{equation}
+
+These findings suggest that as alcohol content increases, the quality of the wine is likely to improve as well. Density and volatile acid have inverse relationships with qualtiy, so when these variables increase, the quality will most likely decrease. Finally, residual sugar, like alcohol, has a positive linear relationship with wine quality, so sugar amount and quality are more likely to change value in the same direction. 
+
+It is important to note that models using this data can predict 26% of the variation, at best. In order to improve predictive value of models, it is necessary to clean the data and determine whether certain variables require transformations before performing regression modeling.
